@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="ja">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+  <title>Ghost Racer · 周回学習</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101519;
+      --card: #192127;
+      --line: #35434a;
+      --text: #edf0ed;
+      --muted: #aababa;
+      --mint: #94efc4;
+      --amber: #ffb262;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font:
+        15px/1.55 "Inter",
+        "Hiragino Sans",
+        sans-serif;
+    }
+    header,
+    main {
+      max-width: 1220px;
+      margin: auto;
+      padding: 22px 32px;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header strong {
+      font: 700 20px/1 monospace;
+      letter-spacing: 0.05em;
+    }
+    header span,
+    small,
+    p,
+    label {
+      color: var(--muted);
+    }
+    main {
+      padding-top: 30px;
+    }
+    h1 {
+      font-size: clamp(28px, 4vw, 44px);
+      margin: 0 0 20px;
+      letter-spacing: -0.05em;
+    }
+    h2 {
+      font-size: 20px;
+      margin: 0 0 16px;
+    }
+    h3,
+    legend {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    fieldset {
+      border: 0;
+      border-top: 1px solid var(--line);
+      margin: 0;
+      padding: 10px 0 16px;
+    }
+    legend {
+      padding: 0 8px 0 0;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(265px, 340px) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--card);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px 12px;
+    }
+    label {
+      display: grid;
+      gap: 3px;
+      font-size: 12px;
+    }
+    input,
+    select,
+    button {
+      font: inherit;
+      color: var(--text);
+      padding: 8px 10px;
+      background: #10191d;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      width: 100%;
+      min-width: 0;
+    }
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      background: var(--mint);
+      color: #14251f;
+      padding: 12px;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+    .chart {
+      width: 100%;
+      display: block;
+      background: #111a1f;
+      border-radius: 7px;
+    }
+    figure {
+      margin: 0;
+    }
+    figcaption {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .green {
+      color: var(--mint);
+    }
+    .orange {
+      color: var(--amber);
+    }
+    #status {
+      font-size: 13px;
+      margin: 10px 0 0;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .row select {
+      width: auto;
+      max-width: 100%;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+      gap: 8px;
+      margin: 14px 0;
+    }
+    .metrics div {
+      background: #10191d;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .metrics b,
+    .metrics small {
+      display: block;
+    }
+    a {
+      color: var(--mint);
+    }
+    [hidden] {
+      display: none !important;
+    }
+    details {
+      margin: 12px 0;
+      font-size: 13px;
+    }
+    summary {
+      cursor: pointer;
+    }
+    #report {
+      margin-top: 16px;
+    }
+    .result-chart {
+      margin: 14px 0;
+    }
+    .tabs {
+      display: flex;
+      gap: 22px;
+      margin-bottom: 16px;
+    }
+    .tabs a {
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      padding: 4px 0;
+    }
+    .tabs a[aria-current="true"] {
+      color: var(--mint);
+      border-color: var(--mint);
+    }
+    @media (max-width: 750px) {
+      header,
+      main {
+        padding: 16px;
+      }
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .panel {
+        padding: 16px;
+      }
+      .grid {
+        grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+      }
+    }
+    #profile {
+      margin-top: 12px;
+    }
+    #replay { margin: 22px 0; }
+    .replay-view { display:grid; grid-template-columns:minmax(0, 640px) minmax(100px, 210px); gap:clamp(10px, 2vw, 24px); align-items:start; }
+    .stick-panel { display:grid; gap:clamp(5px, 1vw, 12px); }
+    .stick-panel h4 { margin:0; font-size:13px; }
+    .stick-meter { display:grid; grid-template-columns:1fr auto; align-items:baseline; font-size:12px; }
+    .stick-meter b { font-variant-numeric:tabular-nums; font-weight:500; color:var(--muted); }
+    .stick-track { grid-column:1 / -1; position:relative; height:8px; background:var(--line); border-radius:3px; overflow:hidden; }
+    .stick-track::before { content:""; position:absolute; inset-block:0; left:var(--start); width:var(--fill); background:var(--mint); }
+    .stick-meter[aria-valuemin="-100"] .stick-track::after { content:""; position:absolute; inset-block:0; left:50%; width:1px; background:var(--text); }
+    #replay canvas { display:block; width: min(100%, 640px); height:auto; background:#10191d; border-radius:6px; }
+    .replay-controls { display:flex; flex-wrap:wrap; align-items:center; gap:12px; max-width:640px; margin:10px 0; }
+    .replay-controls button { width:auto; padding:6px 16px; }
+    .replay-controls label { display:flex; align-items:center; gap:4px; }
+    .replay-controls input[type="checkbox"] { width:auto; }
+    .replay-controls input[type="range"] { flex:1; min-width:100px; padding:0; accent-color:var(--mint); }
+    #replay output { font-size:13px; color:var(--muted); }
+  </style>
+  <header>
+    <strong>GHOST RACER</strong><span>65 mm Tiny Whoop · ACRO</span>
+  </header>
+  <main>
+    <h1>周回トレーニング</h1>
+    <nav class="tabs">
+      <a id="newTab" href="#setup">学習設定</a
+      ><a id="resultsTab" href="#results">学習結果</a>
+    </nav>
+    <div id="setup" class="layout">
+      <form id="form" class="panel">
+        <h2>PPO 学習設定</h2>
+        <fieldset>
+          <legend>機体と操縦</legend>
+          <div class="grid" id="droneFields"></div>
+        </fieldset>
+        <fieldset>
+          <legend>学習</legend>
+          <div class="grid" id="trainFields"></div>
+        </fieldset>
+        <fieldset>
+          <legend>早期終了</legend>
+          <label>成功条件<select id="goal" name="goal">
+            <option value="off">使用しない</option><option value="gate">第1ゲート通過</option>
+            <option value="laps">5周完走</option>
+          </select></label>
+          <fieldset id="goalOptions" hidden disabled><div class="grid" id="goalFields"></div></fieldset>
+        </fieldset>
+        <button id="start" disabled>学習 Start</button>
+        <p id="status" role="status"></p>
+      </form>
+      <figure class="panel">
+        <div class="row">
+          <h2>コース配置</h2>
+          <small id="courseSummary"></small>
+        </div>
+        <canvas
+          class="chart"
+          id="preview"
+          width="750"
+          height="440"
+          aria-label="コースの上面図"
+        ></canvas>
+        <figcaption>
+          <span class="orange">━ ゲート</span
+          >　矢印は進行方向。1番ゲートがスタート・フィニッシュです。
+        </figcaption>
+        <canvas
+          id="profile"
+          class="chart"
+          width="750"
+          height="105"
+          aria-label="各ゲートの高度と開口"
+        ></canvas>
+        <figcaption>
+          縦線は各ゲートの開口高さ、折れ線は中心高度です。
+        </figcaption>
+
+      </figure>
+    </div>
+    <section id="results" class="panel" hidden>
+      <div class="row">
+        <h2>学習結果</h2>
+        <select id="history" aria-label="学習履歴"></select>
+      </div>
+      <p id="resultStatus" role="status"></p>
+      <div id="report" hidden>
+        <div class="row">
+          <label>表示する飛行<select id="trial"></select></label
+          ><a id="download" download="ppo.zip">学習済み方策を保存</a>
+        </div>
+        <div class="metrics" id="metrics"></div>
+        <section id="replay" aria-label="機体カメラのリプレイ">
+          <h3>機体カメラとゲート検出</h3>
+          <div class="replay-view">
+            <canvas width="320" height="240" aria-label="記録された FPV 映像" hidden></canvas>
+            <div class="stick-panel" hidden><h4>スティック出力</h4></div>
+          </div>
+          <div class="replay-controls" hidden>
+            <button type="button">再生</button>
+            <input type="range" min="0" step="1" value="0" aria-label="カメラのフレーム">
+            <label><input type="checkbox" checked>ゲート検出を重ねる</label>
+          </div>
+          <output></output>
+        </section>
+        <figure>
+          <canvas
+            class="chart"
+            id="track"
+            width="900"
+            height="420"
+            aria-label="選択した飛行の軌跡"
+          ></canvas>
+          <figcaption>
+            <span class="green">━ 飛行軌跡</span>　<span id="referenceLegend" hidden>┄ 採用した基準軌道　</span><span class="orange"
+              >━ ゲート</span
+            >　丸印は飛行終了位置。グリッドは縦横ともに1マス1 mです。
+          </figcaption>
+        </figure>
+        <figure class="result-chart">
+          <canvas
+            class="chart"
+            id="altitude"
+            width="900"
+            height="160"
+            aria-label="飛行高度の時系列"
+          ></canvas>
+          <figcaption>
+            <span class="green">━ 飛行高度</span>　<span class="orange"
+              >│ 通過したゲートの開口</span
+            >
+          </figcaption>
+        </figure>
+        <figure class="result-chart">
+          <canvas
+            class="chart"
+            id="scores"
+            width="900"
+            height="170"
+            aria-label="学習エピソードごとの報酬"
+          ></canvas>
+          <figcaption>学習エピソードごとの報酬</figcaption>
+        </figure>
+        <p id="laps"></p>
+      </div>
+      <details id="conditions" hidden>
+        <summary>この学習の設定</summary>
+        <p id="savedConfig"></p>
+      </details>
+    </section>
+  </main>
+  <script src="/replay.js"></script>
+  <script>
+    "use strict";
+    const el = (id) => document.getElementById(id),
+      form = el("form");
+    const replay = new CameraReplay(el("replay"));
+    const fields = {
+      mass: ["droneFields","機体質量 (g)"],
+      camera_angle_deg: ["droneFields","カメラ取付角 (°・上向きが正)"],
+      steps: ["trainFields","最大学習ステップ数"],
+      check_rollouts: ["goalFields","評価間隔（ロールアウト数）"],
+      eval_flights: ["goalFields","評価飛行数"],
+      required_successes: ["goalFields","必要成功回数"],
+      rollout_steps: ["trainFields","ロールアウト長"],
+      seconds: ["trainFields", "エピソード時間 (秒)"],
+      seed: ["trainFields", "乱数シード"],
+    };
+    const states = {
+      complete: "完了",
+      running: "学習中",
+      failed: "失敗",
+      interrupted: "中断",
+    };
+    const reasons = {
+      finished: "完走",
+      goal_check: "目標評価に移行",
+      training_budget: "学習ステップ到達",
+      stalled: "移動停止",
+      ground_contact: "着地",
+      gate_contact: "ゲート接触",
+      missed_gate: "ゲート通過失敗",
+      fc_disarmed: "FC ディスアーム",
+      outside_course: "コース外",
+      time_limit: "制限時間",
+    };
+    async function api(path, payload) {
+      const opt =
+        payload === undefined
+          ? {}
+          : {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            };
+      const r = await fetch("/api/" + path, opt),
+        data = await r.json();
+      if (!r.ok) throw Error(data.error);
+      return data;
+    }
+    el("goal").onchange = () => {
+      el("goalOptions").hidden = el("goalOptions").disabled = el("goal").value === "off";
+    };
+    function progressText(p) {
+      if (!p) return "学習中";
+      const count = p.steps.toLocaleString() + " / " + p.maximum.toLocaleString() + " ステップ";
+      if (p.phase === "reference") return "基準軌道の選抜　候補 " + p.candidate + "（" + p.pace + " m/s）　" + p.attempt + " / 2 飛行";
+      if (p.phase === "evaluation") return count + "　評価 " + p.completed + " / " + p.total + " 飛行（成功 " + p.successes + " 回）";
+      if (p.phase === "final" && p.total) return count + "　保存方策の検証 " + p.completed + " / " + p.total + " 飛行";
+      return (p.phase === "final" ? "保存方策を再評価中　" : "学習中　") + count;
+    }
+    function values() {
+      return Object.fromEntries([...new FormData(form)].map(([k,v])=>[k,k === "goal" ? v : Number(v)]))
+    }
+    function map(canvas, course, trace = [], referenceTrace = []) {
+      const ctx = canvas.getContext("2d"),
+        w = canvas.width,
+        h = canvas.height,
+        [[xmin, xmax], [ymin, ymax]] = course.bounds;
+      const k = Math.min((w - 90) / (xmax - xmin), (h - 88) / (ymax - ymin));
+      const P = (x, y) => [
+        w / 2 + (x - (xmin + xmax) / 2) * k,
+        h / 2 - (y - (ymin + ymax) / 2) * k,
+      ];
+      ctx.clearRect(0, 0, w, h);
+      ctx.lineCap = "round";
+      function line(pts, color, width) {
+        ctx.beginPath();
+        pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+      }
+      const [left, bottom] = P(xmin, ymin);
+      const [right, top] = P(xmax, ymax);
+      const labelStep = Math.max(1, Math.ceil(30 / k));
+      ctx.save();
+      ctx.font = "16px monospace";
+      ctx.fillStyle = "#b8c7c4";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      for (let x = Math.ceil(xmin); x <= xmax; x++) {
+        const base = P(x, ymin);
+        line([base, P(x, ymax)], x === 0 ? "#52686c" : "#263338", 1);
+        if (x % labelStep === 0) ctx.fillText(String(x), base[0], bottom + 5);
+      }
+      ctx.fillText("X (m)", (left + right) / 2, bottom + 24);
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      for (let y = Math.ceil(ymin); y <= ymax; y++) {
+        const base = P(xmin, y);
+        line([base, P(xmax, y)], y === 0 ? "#52686c" : "#263338", 1);
+        if (y % labelStep === 0) ctx.fillText(String(y), left - 7, base[1]);
+      }
+      ctx.textAlign = "left";
+      ctx.fillText("Y (m)", left - 7, top - 18);
+      ctx.restore();
+      const route = course.path || course.gates.map((g) => g.center);
+      line(
+        [...route, route[0]].map((p) => P(p[0], p[1])),
+        "#53676c",
+        2,
+      );
+      if (referenceTrace.length) {
+        ctx.setLineDash([6, 5]);
+        line(referenceTrace.map(p => P(p[1], p[2])), "#ebecf0", 2);
+        ctx.setLineDash([]);
+      }
+      course.gates.forEach((g, i) => {
+        const [x, y] = g.center,
+          c = Math.cos(g.yaw),
+          s = Math.sin(g.yaw),
+          v = (g.opening || course.opening)[0] / 2;
+        line([P(x + s * v, y - c * v), P(x - s * v, y + c * v)], "#ffb262", 5);
+        const [px, py] = P(x + s * (v + 0.27), y - c * (v + 0.27));
+        ctx.fillStyle = "#f5d4b5";
+        ctx.font = "bold 14px monospace";
+        ctx.fillText(i + 1, px - 4, py + 5);
+        const tip = P(x + 0.38 * c, y + 0.38 * s);
+        line([P(x, y), tip], "#aababa", 2);
+        line(
+          [
+            P(x + 0.23 * c + 0.08 * s, y + 0.23 * s - 0.08 * c),
+            tip,
+            P(x + 0.23 * c - 0.08 * s, y + 0.23 * s + 0.08 * c),
+          ],
+          "#aababa",
+          2,
+        );
+      });
+      if (trace.length) {
+        const pts = trace.map((p) => P(p[1], p[2]));
+        line(pts, "#94efc4", 3);
+        ctx.fillStyle = "#94efc4";
+        ctx.beginPath();
+        ctx.arc(...pts.at(-1), 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    function altitude(course, trace) {
+      const c = el("altitude"),
+        ctx = c.getContext("2d"),
+        end = trace.at(-1)[0],
+        ceiling = trace.reduce((height, point) => Math.max(height, point[3]), course.bounds[2][1]);
+      const X = (t) => 48 + (825 * t) / Math.max(0.01, end),
+        Y = (z) => 128 - (108 * z) / ceiling;
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.fillStyle = "#b8c7c4";
+      ctx.font = "14px monospace";
+      ctx.fillText(ceiling.toFixed(1) + "m", 4, 24);
+      ctx.fillText("0m", 12, 130);
+      ctx.fillText("0s", 46, 150);
+      ctx.fillText(end.toFixed(1) + "s", 822, 150);
+      ctx.beginPath();
+      trace.forEach(([t, x, y, z], i) =>
+        i ? ctx.lineTo(X(t), Y(z)) : ctx.moveTo(X(t), Y(z)),
+      );
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#94efc4";
+      ctx.stroke();
+      trace.forEach(([t, x, y, z, n], i) => {
+        if (!i || n === trace[i - 1][4]) return;
+        const g = course.gates[(n - 1) % course.gates.length],
+          h = (g.opening || course.opening)[1] / 2;
+        ctx.beginPath();
+        ctx.moveTo(X(t), Y(g.center[2] - h));
+        ctx.lineTo(X(t), Y(g.center[2] + h));
+        ctx.strokeStyle = "#ffb262";
+        ctx.stroke();
+      });
+    }
+    function scores(trials) {
+      const c = el("scores"),
+        ctx = c.getContext("2d"),
+        vals = trials.filter((t) => !t.evaluation).map((t) => t.score);
+      ctx.clearRect(0, 0, c.width, c.height);
+      if (!vals.length) return;
+      const lo = Math.floor(Math.min(...vals)),
+        hi = Math.max(lo + 1, Math.ceil(Math.max(...vals))),
+        X = (i) => 48 + (i * 830) / Math.max(1, vals.length - 1),
+        Y = (v) => 140 - ((v - lo) * 115) / (hi - lo);
+      ctx.font = "14px monospace";
+      ctx.fillStyle = "#b7c9c8";
+      [lo, hi].forEach((v) => ctx.fillText(v, 4, Y(v) + 4));
+      ctx.strokeStyle = "#94efc4";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      vals.forEach((v, i) =>
+        i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)),
+      );
+      ctx.stroke();
+      vals.forEach((v, i) => {
+        ctx.beginPath();
+        ctx.arc(X(i), Y(v), 3, 0, 7);
+        ctx.fill();
+      });
+    }
+    let rec=null, ready=false, busy=false;
+    function startState(){el("start").disabled=!ready||busy}
+    function profile(course) {
+      const c = el("profile"),
+        ctx = c.getContext("2d"),
+        gs = course.gates,
+        top = Math.max(...gs.map((g) => g.center[2] + g.opening[1] / 2)) + 0.2;
+      const X = (i) => 50 + (i * 660) / (gs.length - 1),
+        Y = (z) => 86 - (z / top) * 74;
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.font = "12px monospace";
+      ctx.fillStyle = "#b8c7c4";
+      ctx.fillText(top.toFixed(1) + "m", 4, 16);
+      ctx.fillText("0m", 12, 88);
+      ctx.beginPath();
+      gs.forEach((g, i) =>
+        i ? ctx.lineTo(X(i), Y(g.center[2])) : ctx.moveTo(X(i), Y(g.center[2])),
+      );
+      ctx.strokeStyle = "#94efc4";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      gs.forEach((g, i) => {
+        const z = g.center[2],
+          h = g.opening[1] / 2;
+        ctx.beginPath();
+        ctx.moveTo(X(i), Y(z - h));
+        ctx.lineTo(X(i), Y(z + h));
+        ctx.strokeStyle = "#ffb262";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.fillText(i + 1, X(i) - 3, 101);
+      });
+    }
+    function metric(label, value) {
+      const d = document.createElement("div"),
+        s = document.createElement("small"),
+        b = document.createElement("b");
+      s.textContent = label;
+      b.textContent = value;
+      d.append(s, b);
+      return d;
+    }
+    async function showTrial() {
+      const run = rec,
+        i = +el("trial").value,
+        t = run.trials[i];
+      replay.clear();
+      if (!t) return;
+      const base = "runs/" + run.id + "/trace-";
+      const selectedReference = run.ppo?.reference;
+      const referenceIndex = selectedReference ? run.trials.findIndex(flight =>
+        flight.reference_pace === selectedReference.pace && flight.laps === 5 &&
+        Math.abs(flight.lap_times.reduce((a,b) => a + b, 0) - selectedReference.five_lap_seconds) < 0.0001
+      ) : -1;
+      const [trace, referenceTrace] = await Promise.all([
+        api(base + i), referenceIndex < 0 || referenceIndex === i ? [] : api(base + referenceIndex)
+      ]);
+      if (rec !== run || +el("trial").value !== i) return;
+      if (t.camera_frames) replay.open("/api/runs/" + run.id + "/camera-" + i, trace);
+      else replay.clear("この飛行はカメラ記録の追加前に実行されました。");
+      el("referenceLegend").hidden = !referenceTrace.length;
+      map(el("track"), run.course, trace, referenceTrace);
+      altitude(run.course, trace);
+      el("metrics").replaceChildren(
+        metric("完了周回", t.laps + " / 5"),
+        metric("カメラ取付角", (run.settings.camera_angle_deg ?? 40) + "°"),
+        metric("ゲート通過", t.gates + " 回"),
+        metric("平均水平速度", t.mean_speed + " m/s"),
+        metric("最高水平速度", t.peak_speed + " m/s"),
+        metric(t.state_source ? "PnP 補正採用率" : "PnP 成功フレーム", (100*t.pose_valid_fraction).toFixed(1)+" %"),
+        ...(t.state_source ? [
+          metric("操縦入力", t.state_source === "teacher" ? "Gazebo 真値" : "カメラ推定"),
+          metric("撮影（シミュレーション時間）", t.camera_fps.toFixed(1) + " fps"),
+          ...(t.received_sim_fps != null ? [metric("受信（シミュレーション時間）", t.received_sim_fps.toFixed(1) + " fps")] : []),
+          metric("受信（実時間）", t.received_fps.toFixed(1) + " fps"),
+          metric("実送信", t.control_hz.toFixed(1) + " Hz"),
+          metric("25 ms 超過", t.late_commands + " 回"),
+          ...(t.position_error_p95_m != null ? [metric("推定位置誤差 p95", t.position_error_p95_m + " m")] : []),
+          ...(t.tracking_error_p95_m != null ? [metric("基準軌道からのずれ p95", t.tracking_error_p95_m + " m")] : []),
+          ...(t.masked_error_p95_m != null ? [metric("検出欠落中の位置誤差 p95", t.masked_error_p95_m + " m")] : []),
+          ...(t.vision_age_p95_ms != null ? [metric("使用画像の経過時間 p95", Math.round(t.vision_age_p95_ms) + " ms")] : []),
+          ...(t.dropout_seconds ? [metric("意図的に除外した検出", t.masked_frames + " 回")] : []),
+        ] : []),
+        metric("飛行時間", t.sim_seconds + " s"),
+        metric("終了", reasons[t.reason] || t.reason),
+      );
+      el("laps").textContent = t.lap_times
+        .map((s, i) => i + 1 + "周目 " + s + " s")
+        .join("　");
+    }
+    async function loadResult() {
+      replay.clear();
+      const key = el("history").value;
+      el("report").hidden = true;
+      el("conditions").hidden = true;
+      if (!key) {
+        el("resultStatus").textContent =
+          "学習を開始すると、ここに結果が保存されます。";
+        return;
+      }
+      const run = await api("runs/" + key);
+      if (el("history").value !== key) return;
+      rec = run;
+      el("resultStatus").textContent =
+        (run.status === "running" ? progressText(currentRun?.id === key ? currentRun.progress : run.progress) : states[run.status]) +
+        (run.status === "interrupted" && run.trials.length ? " · 最後に記録した学習ステップ " + (run.trials.findLast(t => Number.isInteger(t.step))?.step ?? 0) + " / " + run.settings.steps : "") +
+        (run.ppo?.stop_reason ? " · " + (run.ppo.stop_reason === "goal_reached" ? "目標達成" : "最大ステップ到達") : "") +
+        (run.ppo?.last_check ? " · 評価成功 " + run.ppo.last_check.successes + " / " + run.ppo.last_check.total + " 飛行" : "") +
+        (run.ppo ? " · "+run.ppo.steps+" / "+run.settings.steps+" ステップ · "+run.ppo.epochs+" 学習エポック" : "") +
+        (run.error
+          ? " · " + run.error
+          : run.status === "running"
+            ? "。この画面を閉じても学習は続きます。"
+            : "");
+      el("conditions").hidden = false;
+      el("savedConfig").textContent = [
+        "PPO",
+        ...(run.ppo?.reference ? ["採用した真値飛行 " + run.ppo.reference.pace + " m/s 設定・5周 " + run.ppo.reference.five_lap_seconds.toFixed(2) + " 秒（2飛行平均 " + run.ppo.reference.mean_seconds.toFixed(2) + " 秒）"] : []),
+        "早期終了 " + ({gate:"第1ゲート通過",laps:"5周完走"}[run.settings.goal] || "オフ"),
+        ...Object.entries(fields).filter(([k,[group]]) => k in run.settings && (group !== "goalFields" || run.settings.goal !== "off")).map(
+          ([k, [, label]]) => label + " " + run.settings[k],
+        ),
+      ].join("　");
+      if (run.status === "running" || !run.trials.length) return;
+      el("trial").replaceChildren(
+        ...run.trials.map(
+          (t, i) =>
+            new Option(
+              (t.evaluation
+                ? (t.reference_pace ? "基準候補 " + t.reference_pace + " m/s · " + t.attempt + " 回目" : t.goal_check ? t.step + " step · 目標評価 " + t.goal_check + (t.success ? " 成功" : " 未達") : t.additional_evaluation ? "保存方策の追加評価（録画付き）" : "学習済み方策の再評価")
+                : "エピソード " + t.episode + " · " + t.step + " step") + (t.state_source === "teacher" ? " · 真値" : t.state_source === "camera" ? (t.dropout_seconds ? " · 検出欠落 " + t.dropout_seconds + " 秒" : " · カメラ推定") : ""),
+              i,
+            ),
+        ),
+      );
+      const cameraTrial = run.trials.findLastIndex(t => t.evaluation && !t.goal_check && t.state_source === "camera" && !t.dropout_seconds);
+      el("trial").value = cameraTrial >= 0 ? cameraTrial : run.trials.length - 1;
+      el("download").hidden = !run.ppo;
+      el("download").href = "/api/runs/" + key + "/policy";
+      el("report").hidden = false;
+      scores(run.trials);
+      await showTrial();
+    }
+    let historyState = "", currentRun = null;
+    async function list(preferred) {
+      const runs = await api("runs"),
+        key = preferred || el("history").value,
+        signature = JSON.stringify(runs.map(r => [r.id,r.status]));
+      currentRun = runs.find(r => r.status === "running");
+      busy = Boolean(currentRun);
+      startState();
+      el("status").textContent = busy
+        ? progressText(currentRun.progress)
+        : "";
+      if (signature !== historyState || preferred) {
+        historyState = signature;
+        el("history").replaceChildren(
+          ...runs.map(
+            (r) =>
+              new Option(
+                new Date(r.started).toLocaleString("ja-JP") +
+                  " · " +
+                  states[r.status],
+                r.id,
+              ),
+          ),
+        );
+        if (runs.some((r) => r.id === key)) el("history").value = key;
+        await loadResult();
+      } else if (currentRun && el("history").value === currentRun.id) {
+        el("resultStatus").textContent = progressText(currentRun.progress);
+      }
+    }
+    function tabs() {
+      const result = location.hash === "#results";
+      if (!result) replay.pause();
+      el("results").hidden = !result;
+      el("setup").hidden = result;
+      el("newTab").setAttribute("aria-current", !result);
+      el("resultsTab").setAttribute("aria-current", result);
+    }
+    window.onhashchange = tabs;
+    tabs();
+    function error(e) {
+      el("status").textContent = el("resultStatus").textContent = e.message;
+    }
+    el("history").onchange = () => loadResult().catch(error);
+    el("trial").onchange = () => showTrial().catch(error);
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      el("start").disabled = true;
+      try {
+        const job = await api("runs", values());
+        el("report").hidden = true;
+        el("resultStatus").textContent = "学習中";
+        location.hash = "results";
+        await list(job.id);
+      } catch (e) {
+        el("start").disabled = busy;
+        error(e);
+      }
+    };
+    (async () => {
+      const { defaults, limits, course } = await api("settings");
+      for (const [key, [group, label]] of Object.entries(fields)) {
+        const l = document.createElement("label"),
+          n = document.createElement("input");
+        l.textContent = label;
+        n.type = "number";
+        n.name = key;
+        [n.min, n.max] = limits[key];
+        n.step = key==="mass" || key==="camera_angle_deg"
+          ? "any"
+          : "1";
+        n.required = true;
+        n.value = defaults[key];
+        l.append(n);
+        el(group).append(l);
+      }
+      map(el("preview"),course);profile(course);
+      el("courseSummary").textContent=course.gates.length+" ゲート · 5 周";
+      ready = true;
+      await list();
+      setInterval(() => {
+        if (!document.hidden) list().catch(error);
+      }, 2000);
+    })().catch(error);
+  </script>
+</html>

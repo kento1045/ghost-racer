@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "gates": [
+    {"center": [1.6, 0.0, 0.85], "yaw_deg": 0, "opening": [1.0, 1.0]},
+    {"center": [4.8, 0.0, 1.05], "yaw_deg": 0, "opening": [1.0, 1.0]},
+    {"center": [6.1, 1.25, 1.35], "yaw_deg": 90, "opening": [1.0, 1.0]},
+    {"center": [4.8, 2.5, 1.2], "yaw_deg": 180, "opening": [1.0, 1.0]},
+    {"center": [2.0, 1.85, 0.78], "yaw_deg": 170, "opening": [1.0, 1.0]},
+    {"center": [-0.3, 3.45, 1.12], "yaw_deg": 155, "opening": [1.0, 1.0]},
+    {"center": [-2.7, 2.35, 1.28], "yaw_deg": -115, "opening": [1.0, 1.0]},
+    {"center": [-1.8, 0.3, 0.82], "yaw_deg": -15, "opening": [1.0, 1.0]}
+  ]
+}

@@ -1,0 +1,107 @@
+--- a/src/platform/SIMULATOR/sitl.c
++++ b/src/platform/SIMULATOR/sitl.c
+@@ -107,7 +107,9 @@
+ static pthread_t tcpWorker, udpWorker, udpWorkerRC;
+ static bool workerRunning = true;
+ static udpLink_t stateLink, pwmLink, pwmRawLink, rcLink;
+-static pthread_mutex_t updateLock;
++static _Atomic bool motorUpdateDue;
++static _Atomic uint64_t schedulerTimeUs;
++static _Atomic uint64_t sensorBudgetUs;
+ static pthread_mutex_t mainLoopLock;
+ static char simulator_ip[32] = "127.0.0.1";
+ 
+@@ -505,7 +507,10 @@
+ #endif
+     }
+ 
+-    pthread_mutex_unlock(&updateLock); // can send PWM output now
++    if (schedulerTimeUs && deltaSim > 0 && deltaSim < 0.1) {
++        __atomic_fetch_add(&sensorBudgetUs, (uint64_t)llround(deltaSim * 1e6), __ATOMIC_RELEASE);
++    }
++    motorUpdateDue = true;
+ 
+ #if ENABLE_SIMULATOR_GYROPID_SYNC
+     pthread_mutex_unlock(&mainLoopLock); // can run main loop
+@@ -585,11 +590,6 @@
+ 
+     SystemCoreClock = 500 * 1e6; // virtual 500MHz
+ 
+-    if (pthread_mutex_init(&updateLock, NULL) != 0) {
+-        printf("Create updateLock error!\n");
+-        exit(1);
+-    }
+-
+     if (pthread_mutex_init(&mainLoopLock, NULL) != 0) {
+         printf("Create mainLoopLock error!\n");
+         exit(1);
+@@ -687,6 +687,7 @@
+ 
+ uint64_t micros64(void)
+ {
++    if (schedulerTimeUs) return schedulerTimeUs;
+     static uint64_t last = 0;
+     static uint64_t out = 0;
+     pthread_mutex_lock(&clockLock);
+@@ -748,6 +749,20 @@
+     while (nanosleep(&ts, &ts) == -1 && errno == EINTR) ;
+ }
+ 
++// Let the regular scheduler visit intermediate deadlines between two
++// Gazebo samples. Wall-clock jitter must not advance an RC or PID deadline.
++void sitlStepScheduler(void)
++{
++    if (!schedulerTimeUs) {
++        schedulerTimeUs = micros64();
++    }
++    while (sensorBudgetUs < 25) {
++        microsleep(50);
++    }
++    __atomic_fetch_sub(&sensorBudgetUs, 25, __ATOMIC_ACQ_REL);
++    schedulerTimeUs += 25;
++}
++
+ void delayMicroseconds(uint32_t us)
+ {
+     microsleep(us / simRate);
+@@ -840,7 +855,7 @@
+     }
+ 
+     // get one "fdm_packet" can only send one "servo_packet"!!
+-    if (pthread_mutex_trylock(&updateLock) != 0) return;
++    if (!__atomic_exchange_n(&motorUpdateDue, false, __ATOMIC_ACQUIRE)) return;
+     udpSend(&pwmLink, &pwmPkt, sizeof(servo_packet));
+     udpSend(&pwmRawLink, &pwmRawPkt, sizeof(servo_packet_raw));
+ }
+--- a/src/main/main.c
++++ b/src/main/main.c
+@@ -147,9 +147,13 @@
+ void FAST_CODE run(void)
+ {
+     while (true) {
++#if ENABLE_SIMULATOR_MULTITHREAD
++        extern void sitlStepScheduler(void);
++        sitlStepScheduler();
++#endif
+         scheduler();
+ 
+-#if defined(RUN_LOOP_DELAY_US) && RUN_LOOP_DELAY_US > 0
++#if !ENABLE_SIMULATOR_MULTITHREAD && defined(RUN_LOOP_DELAY_US) && RUN_LOOP_DELAY_US > 0
+         delayMicroseconds_real(RUN_LOOP_DELAY_US);
+ #endif
+     }
+--- a/src/main/scheduler/scheduler.c
++++ b/src/main/scheduler/scheduler.c
+@@ -564,7 +564,12 @@
+         }
+ 
+         // Once close to the timing boundary, poll for it's arrival
++        #if ENABLE_SIMULATOR_MULTITHREAD
++        // The virtual clock advances between scheduler calls.
++        if (schedLoopRemainingCycles <= 0) {
++#else
+         if (schedLoopRemainingCycles < schedLoopStartCycles) {
++#endif
+             if (schedLoopStartCycles > schedLoopStartMinCycles) {
+                 schedLoopStartCycles -= schedLoopStartDeltaDownCycles;
+             }

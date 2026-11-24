@@ -1,0 +1,36 @@
+map AETR1234
+mixer QUADX
+feature RX_UDP
+feature -MOTOR_STOP
+set motor_pwm_protocol = PWM
+set use_unsynced_pwm = ON
+set pid_process_denom = 1
+set yaw_motors_reversed = OFF
+set acc_calibration = 0,0,0,1
+set pwr_on_arm_grace = 1
+aux 0 0 0 1700 2100 0 0
+# ACRO with a linear 300 deg/s rate curve on each axis.
+set rates_type = ACTUAL
+set roll_rc_rate = 30
+set pitch_rc_rate = 30
+set yaw_rc_rate = 30
+set roll_srate = 30
+set pitch_srate = 30
+set yaw_srate = 30
+# Lower gains for the simulated 26 g airframe and its idealized actuators.
+set simplified_pids_mode = OFF
+set p_roll = 4
+set i_roll = 5
+set d_roll = 0
+set d_max_roll = 0
+set f_roll = 0
+set p_pitch = 4
+set i_pitch = 5
+set d_pitch = 0
+set d_max_pitch = 0
+set f_pitch = 0
+set p_yaw = 8
+set i_yaw = 5
+set f_yaw = 0
+set rc_smoothing = OFF
+set yaw_control_reversed = ON

@@ -1,0 +1,75 @@
+--- a/src/platform/SIMULATOR/sitl.c
++++ b/src/platform/SIMULATOR/sitl.c
+@@ -101,7 +101,8 @@
+ static bool fdm_received = false;
+ 
+ static struct timespec start_time;
+-static double simRate = 1.0;
++static _Atomic double simRate = 1.0;
++static pthread_mutex_t clockLock = PTHREAD_MUTEX_INITIALIZER;
+ static sitlRateEstimator_t simRateEstimator;
+ static pthread_t tcpWorker, udpWorker, udpWorkerRC;
+ static bool workerRunning = true;
+@@ -466,7 +467,10 @@
+ #endif
+ 
+     const double deltaReal = (realtime_now - last_realtime) * 1e-6;
+-    sitlRateEstimatorUpdate(&simRateEstimator, deltaSim, deltaReal, &simRate);
++    double rate;
++    if (sitlRateEstimatorUpdate(&simRateEstimator, deltaSim, deltaReal, &rate)) {
++        simRate = rate;
++    }
+ 
+     last_timestamp = pkt->timestamp;
+     last_realtime = realtime_now;
+@@ -685,24 +689,20 @@
+ {
+     static uint64_t last = 0;
+     static uint64_t out = 0;
+-    uint64_t now = nanos64_real();
+-
+-    out += (now - last) * simRate;
++    pthread_mutex_lock(&clockLock);
++    const uint64_t now = nanos64_real();
++    if (last && now >= last) {
++        out += (uint64_t)((now - last) * simRate);
++    }
+     last = now;
+-
+-    return out / 1000;
++    const uint64_t us = out / 1000;
++    pthread_mutex_unlock(&clockLock);
++    return us;
+ }
+ 
+ uint64_t millis64(void)
+ {
+-    static uint64_t last = 0;
+-    static uint64_t out = 0;
+-    uint64_t now = nanos64_real();
+-
+-    out += (now - last) * simRate;
+-    last = now;
+-
+-    return out / (1000 * 1000);
++    return micros64() / 1000;
+ }
+ 
+ uint32_t micros(void)
+--- a/src/main/scheduler/scheduler.c
++++ b/src/main/scheduler/scheduler.c
+@@ -546,7 +546,14 @@
+              * task is non-deterministic
+              * Recover as best we can, advancing scheduling by a whole number of cycles
+              */
++#if ENABLE_SIMULATOR_MULTITHREAD
++            // A Linux process can miss a whole gyro period. Service the most
++            // recent due tick now; advancing to a future tick on every call
++            // can starve the gyro task while the host sleeps between polls.
++            nextTargetCycles += desiredPeriodCycles * (schedLoopRemainingCycles / -desiredPeriodCycles);
++#else
+             nextTargetCycles += desiredPeriodCycles * (1 + (schedLoopRemainingCycles / -desiredPeriodCycles));
++#endif
+             schedLoopRemainingCycles = cmpTimeCycles(nextTargetCycles, nowCycles);
+         }
+ 

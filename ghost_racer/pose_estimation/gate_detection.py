@@ -1,0 +1,1 @@
+# TODO: Implement the gate detection for pose estimation
